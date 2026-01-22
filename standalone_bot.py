@@ -146,7 +146,6 @@ def calculate_passive(user):
             expire = datetime.fromisoformat(expire_str)
             if now > expire:
                 active_boost = 1.0
-                # Сбросим буст
                 update_user(user["id"], active_booster_multiplier=1.0, booster_expire=None)
         except:
             pass
@@ -252,6 +251,23 @@ def get_bot_token():
     print("✅ Токен сохранён!\n")
     return token
 
+# === Вспомогательная функция: таймер ===
+def get_time_until_next_farm(last_farm_str):
+    if not last_farm_str:
+        return "Готово!"
+    try:
+        last = datetime.fromisoformat(last_farm_str)
+        next_farm = last + timedelta(hours=2)
+        now = datetime.utcnow()
+        if now >= next_farm:
+            return "Готово!"
+        delta = next_farm - now
+        hours, remainder = divmod(int(delta.total_seconds()), 3600)
+        minutes = remainder // 60
+        return f"{hours} ч {minutes} мин"
+    except:
+        return "00:00"
+
 # === Основной бот ===
 if __name__ == "__main__":
     if os.path.exists(".env"):
@@ -304,22 +320,6 @@ if __name__ == "__main__":
                 InlineKeyboardButton("⬅️ Назад", callback_data=menu_cb.new(action="back"))
             )
         )
-
-    def get_time_until_next_farm(last_farm_str):
-        if not last_farm_str:
-            return "Готово!"
-        try:
-            last = datetime.fromisoformat(last_farm_str)
-            next_farm = last + timedelta(hours=2)
-            now = datetime.utcnow()
-            if now >= next_farm:
-                return "Готово!"
-            delta = next_farm - now
-            hours, remainder = divmod(int(delta.total_seconds()), 3600)
-            minutes = remainder // 60
-            return f"{hours} ч {minutes} мин"
-        except:
-            return "00:00"
 
     @dp.callback_query_handler(menu_cb.filter(action="mine"))
     async def mine(callback: types.CallbackQuery):
@@ -394,8 +394,9 @@ if __name__ == "__main__":
         kb.add(InlineKeyboardButton("⬅️ Назад", callback_data=menu_cb.new(action="back")))
         await callback.message.edit_text("🌍 Выберите зону:", reply_markup=kb)
 
+    # 🔥 ИСПРАВЛЕНО: callback_data вместо callback_ dict
     @dp.callback_query_handler(zone_cb.filter())
-    async def select_zone(callback: types.CallbackQuery, callback_ dict):
+    async def select_zone(callback: types.CallbackQuery, callback_ dict):  # ← ПРАВИЛЬНО!
         zone_name = callback_data['name']
         user = get_user(callback.from_user.id)
         update_user(callback.from_user.id, current_zone=zone_name)
