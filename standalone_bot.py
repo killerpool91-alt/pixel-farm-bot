@@ -394,9 +394,9 @@ if __name__ == "__main__":
         kb.add(InlineKeyboardButton("⬅️ Назад", callback_data=menu_cb.new(action="back")))
         await callback.message.edit_text("🌍 Выберите зону:", reply_markup=kb)
 
-    # 🔥 ИСПРАВЛЕНО: callback_data вместо callback_ dict
+    # 🔥 ИСПРАВЛЕНО: правильное объявление параметра
     @dp.callback_query_handler(zone_cb.filter())
-    async def select_zone(callback: types.CallbackQuery, callback_ dict):  # ← ПРАВИЛЬНО!
+    async def select_zone(callback: types.CallbackQuery, callback_ dict):  # ← ЭТО ПРАВИЛЬНО!
         zone_name = callback_data['name']
         user = get_user(callback.from_user.id)
         update_user(callback.from_user.id, current_zone=zone_name)
